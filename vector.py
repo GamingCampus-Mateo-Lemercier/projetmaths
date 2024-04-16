@@ -1,5 +1,121 @@
 from __future__ import annotations
 
+class Vector:
+    def __init__( self, lValues: list[ int ] ):
+        self.lValues: list[ int ] = lValues
+        self.iSize: int = len( lValues )
+    
+    @staticmethod
+    def zero( iSize: int ) -> Vector:
+        return Vector( [ 0 for _ in range( iSize ) ] )
+    
+    @staticmethod
+    def one( iSize: int ) -> Vector2:
+        return Vector( [ 1 for _ in range( iSize ) ] )
+    
+    def __repr__( self ) -> str:
+        sPrint = "("
+        if ( self.iSize > 0 ):
+            sPrint += str( self.lValues[ 0 ] )
+            for iIndex in range( 1, self.iSize ):
+                sPrint += ", " + str( self.lValues[ iIndex ] )
+        sPrint += ")"
+        return sPrint
+    
+    def copy( self ) -> Vector:
+        return Vector( [ v for v in self.lValues ] )
+    
+    
+    
+    def __add__( self, other: Vector | float ) -> Vector:
+        newVector = self.copy()
+        if isinstance( other, Vector ):
+            if ( self.iSize != other.iSize ): raise ValueError
+            for iIndex in range( self.iSize ):
+                newVector.lValues[ iIndex ] += other.lValues[ iIndex ]
+        else:
+            for iIndex in range( self.iSize ):
+                newVector.lValues[ iIndex ] += other
+        return newVector
+    
+    def __sub__( self, other: Vector | float ) -> Vector:
+        newVector = self.copy()
+        if isinstance( other, Vector ):
+            if ( self.iSize != other.iSize ): raise ValueError
+            for iIndex in range( self.iSize ):
+                newVector.lValues[ iIndex ] -= other.lValues[ iIndex ]
+        else:
+            for iIndex in range( self.iSize ):
+                newVector.lValues[ iIndex ] -= other
+        return newVector
+    
+    def __mul__( self, other: Vector | float ) -> float | Vector:
+        newVector = self.copy()
+        if isinstance( other, Vector ):
+            if ( self.iSize != other.iSize ): raise ValueError
+            fSum: int = 0
+            for iSelfValue, iOtherValue in zip( self.lValues, other.lValues ):
+                fSum += iSelfValue * iOtherValue
+            return fSum
+        else:
+            for iIndex in range( self.iSize ):
+                newVector.lValues[ iIndex ] *= other
+        return newVector
+    
+    
+    
+    def __bool__( self ) -> bool:
+        for iValue in self.lValues:
+            if ( iValue ): return True
+        return False
+    
+    def __eq__( self ) -> bool:
+        for iIndex in range( self.iSize ):
+            if ( self.lValues[ iIndex ] != self.lValues[ iIndex ] ): return False
+        return True
+    
+    def __lt__( self, other: Vector ) -> bool:
+        for iIndex in range( self.iSize ):
+            if ( self.lValues[ iIndex ] >= other.lValues[ iIndex ] ): return False
+        return True
+    
+    def __le__( self, other: Vector ) -> bool:
+        for iIndex in range( self.iSize ):
+            if ( self.lValues[ iIndex ] > other.lValues[ iIndex ] ): return False
+        return True
+    
+    def __rt__( self, other: Vector ) -> bool:
+        for iIndex in range( self.iSize ):
+            if ( self.lValues[ iIndex ] <= other.lValues[ iIndex ] ): return False
+        return True
+    
+    def __re__( self, other: Vector ) -> bool:
+        for iIndex in range( self.iSize ):
+            if ( self.lValues[ iIndex ] < other.lValues[ iIndex ] ): return False
+        return True
+    
+    
+    
+    def norm( self ) -> float:
+        return ( self * self )**0.5
+    
+    def normalizeToSelf( self ) -> None:
+        norm = self.norm()
+        for iIndex in range( self.iSize ):
+            self.lValues[ iIndex ] /= norm
+    
+    def normalizeToNew( self ) -> Vector2:
+        newVector: Vector = self.copy()
+        newVector.normalizeToSelf()
+        return newVector
+    
+    def distanceTo( self, other: Vector ) -> float:
+        return ( other - self ).norm()
+
+
+
+
+
 class Vector2:
     def __init__( self, x: float, y: float ):
         self.x: float = x
@@ -13,7 +129,7 @@ class Vector2:
     def one() -> Vector2:
         return Vector2( 1, 1 )
     
-    def __repr__( self ):
+    def __repr__( self ) -> str:
         return f"({ self.x }, { self.y })"
     
     def copy( self ) -> Vector2:
@@ -81,7 +197,7 @@ class Vector2:
         return self / self.norm()
     
     def distanceTo( self, other: Vector2 ) -> float:
-        return Vector2( other.x - self.x, other.y - self.y ).norm()
+        return ( other - self ).norm()
 
 
 
@@ -101,7 +217,7 @@ class Vector3:
     def one() -> Vector3:
         return Vector3( 1, 1, 1 )
     
-    def __repr__( self ):
+    def __repr__( self ) -> str:
         return f"({ self.x }, { self.y }, { self.z })"
     
     def copy( self ) -> Vector3:
@@ -175,4 +291,4 @@ class Vector3:
         return self / self.norm()
     
     def distanceTo( self, other: Vector3 ) -> float:
-        return Vector3( other.x - self.x, other.y - self.y, other.z - self.z ).norm()
+        return ( other - self ).norm()
