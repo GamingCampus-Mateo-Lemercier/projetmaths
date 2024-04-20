@@ -1,5 +1,5 @@
 from __future__ import annotations
-from vector import Vector
+from math import cos, sin
 
 class Matrix:
     def __init__( self, lliValues: list[ list[ int ] ] ):
@@ -19,6 +19,37 @@ class Matrix:
                 if ( iRowIndex == iColumn ):
                     newMatrix[ iRowIndex ][ iColumn ] = 1
         return newMatrix
+    
+    @staticmethod
+    def rotation3( angle: float, axis: Vector ) -> Matrix:
+        cosAngle: float = cos( angle )
+        sinAngle: float = sin( angle )
+        
+        u1: Vector = axis / axis.norm()
+        
+        u2: Vector = Vector.null( 3 )
+        for i in range( 3 ):
+            if ( u1[i] != 0 ): u2[i] = 0
+            else: u2[i] = 1
+        
+        u3: Vector = u1 ^ u2
+        
+        P_B1_B2: Matrix = Matrix.null( 3, 3 )
+        for iIndex in range( 3 ):
+            P_B1_B2[ iIndex ][ 0 ] = u1[ iIndex ]
+            P_B1_B2[ iIndex ][ 1 ] = u2[ iIndex ]
+            P_B1_B2[ iIndex ][ 2 ] = u3[ iIndex ]
+        
+        print( P_B1_B2 )
+        P_B2_B1 = P_B1_B2 ** (-1)
+        return \
+            P_B1_B2 *\
+            Matrix([
+                [ 1,        0,         0 ],
+                [ 0, cosAngle, -sinAngle ],
+                [ 0, sinAngle,  cosAngle ],
+            ]) *\
+            P_B2_B1
     
     def __repr__( self ) -> str:
         sFirstRowCharacters = [ "/", "│", "\\" ]
@@ -66,24 +97,34 @@ class Matrix:
                 newMatrix[ iRowIndex ][ iColumnIndex ] = self[ iRowIndex ][ iColumnIndex ] - other[ iRowIndex ][ iColumnIndex ]
         return newMatrix
     
-    def __mul__( self, other: Matrix | float ) -> Matrix:
-        if ( isinstance( other, Matrix ) ):
-            
-            if ( not ( self.iColumns == other.iRows ) ): raise ValueError
-            newMatrix: Matrix = Matrix.null( self.iRows, other.iColumns )
-            for iRowIndex in range( newMatrix.iRows ):
-                for iColumnIndex in range( newMatrix.iColumns ):
-                    for x in range( self.iRows ):
-                        newMatrix[ iRowIndex ][ iColumnIndex ] += self[ iRowIndex ][ x ] * other[ x ][ iColumnIndex ]
-            return newMatrix
-        
-        else:
-            
-            newMatrix: Matrix = Matrix.null( self.iRows, self.iColumns )
-            for iRowIndex in range( newMatrix.iRows ):
-                for iColumnIndex in range( newMatrix.iColumns ):
-                    newMatrix[ iRowIndex ][ iColumnIndex ] = self[ iRowIndex ][ iColumnIndex ] * other
-            return newMatrix
+    def __mul__( self, other: Matrix | Vector | float ) -> Matrix | Vector: # Overload
+        if ( isinstance( other, Matrix ) ): return self.__mul__Matrix( other )
+        elif ( isinstance( other, Vector ) ): return self.__mul__Vector( other )
+        else: return self.__mul__float( other )
+    
+    def __mul__Matrix( self, other: Matrix ) -> Matrix:
+        if ( not ( self.iColumns == other.iRows ) ): raise ValueError
+        newMatrix: Matrix = Matrix.null( self.iRows, other.iColumns )
+        for iRowIndex in range( newMatrix.iRows ):
+            for iColumnIndex in range( newMatrix.iColumns ):
+                for x in range( self.iColumns ):
+                    newMatrix[ iRowIndex ][ iColumnIndex ] += self[ iRowIndex ][ x ] * other[ x ][ iColumnIndex ]
+        return newMatrix
+    
+    def __mul__Vector( self, other: Vector ) -> Vector:
+        if ( not ( self.iRows == other.iSize == self.iColumns ) ): raise ValueError
+        newVector: Vector = Vector.null( other.iSize )
+        for iIndex in range( newVector.iSize ):
+            for x in range( self.iColumns ):
+                newVector[ iIndex ] += self[ iIndex ][ x ] * other[ x ]
+        return newVector
+    
+    def __mul__float( self, other: float ) -> Matrix:
+        newMatrix: Matrix = Matrix.null( self.iRows, self.iColumns )
+        for iRowIndex in range( newMatrix.iRows ):
+            for iColumnIndex in range( newMatrix.iColumns ):
+                newMatrix[ iRowIndex ][ iColumnIndex ] = self[ iRowIndex ][ iColumnIndex ] * other
+        return newMatrix
     
     def __pow__( self, value: int ) -> Matrix:
         if ( not ( self.iRows == self.iColumns ) ): raise ValueError
@@ -123,6 +164,7 @@ class Matrix:
     
     
     def remove( self, iRow: int, iColumn: int ) -> Matrix:
+        #todo <= 0
         newMatrix: Matrix = Matrix.null( self.iRows-1, self.iColumns-1 )
         
         iRowSkip: int = 0
@@ -187,7 +229,7 @@ class Matrix:
     def __bool__( self ) -> bool:
         for iRowIndex in range( self.iRows ):
             for iColumnIndex in range( self.iColumns ):
-                if ( self[ iRowIndex ][ iColumnIndex ] ): return True
+                if ( self[ iRowIndex ][ iColumnIndex ] != 0 ): return True
         return False
     
     def __eq__( self, other: Matrix ) -> bool:
@@ -218,3 +260,5 @@ class Matrix:
     
     def isSymetric( self ) -> bool:
         return ( self == self.T() )
+
+from vector import Vector

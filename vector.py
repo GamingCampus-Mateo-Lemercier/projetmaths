@@ -6,11 +6,11 @@ class Vector:
         self.iSize: int = len( lValues )
     
     @staticmethod
-    def zero( iSize: int ) -> Vector:
+    def null( iSize: int ) -> Vector:
         return Vector( [ 0 for _ in range( iSize ) ] )
     
     @staticmethod
-    def one( iSize: int ) -> Vector2:
+    def one( iSize: int ) -> Vector:
         return Vector( [ 1 for _ in range( iSize ) ] )
     
     def __repr__( self ) -> str:
@@ -27,39 +27,79 @@ class Vector:
     
     
     
+    def __getitem__( self, iIndex: int ) -> float:
+        return self.lValues[ iIndex ]
+    
+    def __setitem__( self, iIndex: int, iValue: float ):
+        self.lValues[ iIndex ] = iValue
+    
+    
+    
+    
     def __add__( self, other: Vector | float ) -> Vector:
+        if ( isinstance( other, Vector ) ): return self.__add__Vector( other )
+        else: return self.__add__float( other )
+    
+    def __add__Vector( self, other: Vector ) -> Vector:
         newVector = self.copy()
-        if isinstance( other, Vector ):
-            if ( self.iSize != other.iSize ): raise ValueError
-            for iIndex in range( self.iSize ):
-                newVector.lValues[ iIndex ] += other.lValues[ iIndex ]
-        else:
-            for iIndex in range( self.iSize ):
-                newVector.lValues[ iIndex ] += other
+        if ( self.iSize != other.iSize ): raise ValueError
+        for iIndex in range( self.iSize ):
+            newVector.lValues[ iIndex ] += other.lValues[ iIndex ]
+        return newVector
+    
+    def __add__float( self, other: float ) -> Vector:
+        newVector = self.copy()
+        for iIndex in range( self.iSize ):
+            newVector.lValues[ iIndex ] += other
         return newVector
     
     def __sub__( self, other: Vector | float ) -> Vector:
+        if ( isinstance( other, Vector ) ): return self.__sub__Vector( other )
+        else: return self.__sub__float( other )
+    
+    def __sub__Vector( self, other: Vector ) -> Vector:
         newVector = self.copy()
-        if isinstance( other, Vector ):
-            if ( self.iSize != other.iSize ): raise ValueError
-            for iIndex in range( self.iSize ):
-                newVector.lValues[ iIndex ] -= other.lValues[ iIndex ]
-        else:
-            for iIndex in range( self.iSize ):
-                newVector.lValues[ iIndex ] -= other
+        if ( self.iSize != other.iSize ): raise ValueError
+        for iIndex in range( self.iSize ):
+            newVector.lValues[ iIndex ] -= other.lValues[ iIndex ]
+        return newVector
+    
+    def __sub__float( self, other: float ) -> Vector:
+        newVector = self.copy()
+        for iIndex in range( self.iSize ):
+            newVector.lValues[ iIndex ] -= other
         return newVector
     
     def __mul__( self, other: Vector | float ) -> float | Vector:
+        if ( isinstance( other, Vector ) ): return self.__mul__Vector( other )
+        else: return self.__mul__float( other )
+    
+    def __mul__Vector( self, other: Vector ) -> float:
+        if ( self.iSize != other.iSize ): raise ValueError
+        fSum: int = 0
+        for iSelfValue, iOtherValue in zip( self.lValues, other.lValues ):
+            fSum += iSelfValue * iOtherValue
+        return fSum
+    
+    def __mul__float( self, other: float ) -> Vector:
         newVector = self.copy()
-        if isinstance( other, Vector ):
-            if ( self.iSize != other.iSize ): raise ValueError
-            fSum: int = 0
-            for iSelfValue, iOtherValue in zip( self.lValues, other.lValues ):
-                fSum += iSelfValue * iOtherValue
-            return fSum
-        else:
-            for iIndex in range( self.iSize ):
-                newVector.lValues[ iIndex ] *= other
+        for iIndex in range( self.iSize ):
+            newVector.lValues[ iIndex ] *= other
+        return newVector
+    
+    def __xor__( self, other: Vector) -> Vector: # prodvect()
+        newVector: Vector = Vector.null( self.iSize )
+        i1: int ; i2: int
+        for i in range( self.iSize ):
+            i1 = ( i + 1 ) % 3
+            i2 = ( i + 2 ) % 3
+            newVector[i] = self[i1] * other[i2] - other[i1] * self[i2]
+        return newVector
+    
+    def __truediv__( self, other: float ) -> Vector:
+        newVector = self.copy()
+        for iIndex in range( self.iSize ):
+            newVector.lValues[ iIndex ] /= other
         return newVector
     
     
@@ -104,7 +144,7 @@ class Vector:
         for iIndex in range( self.iSize ):
             self.lValues[ iIndex ] /= norm
     
-    def normalizeToNew( self ) -> Vector2:
+    def normalizeToNew( self ) -> Vector:
         newVector: Vector = self.copy()
         newVector.normalizeToSelf()
         return newVector
@@ -112,183 +152,4 @@ class Vector:
     def distanceTo( self, other: Vector ) -> float:
         return ( other - self ).norm()
 
-
-
-
-
-class Vector2:
-    def __init__( self, x: float, y: float ):
-        self.x: float = x
-        self.y: float = y
-    
-    @staticmethod
-    def zero() -> Vector2:
-        return Vector2( 0, 0 )
-    
-    @staticmethod
-    def one() -> Vector2:
-        return Vector2( 1, 1 )
-    
-    def __repr__( self ) -> str:
-        return f"({ self.x }, { self.y })"
-    
-    def copy( self ) -> Vector2:
-        return Vector2( self.x, self.y )
-    
-    
-    
-    def __add__( self, other: Vector2 | float ) -> Vector2:
-        newVector = self.copy()
-        if isinstance( other, Vector2 ):
-            newVector.x += other.x
-            newVector.y += other.y
-        else:
-            newVector.x += other
-            newVector.y += other
-        return newVector
-    
-    def __sub__( self, other: Vector2 | float ) -> Vector2:
-        newVector = self.copy()
-        if isinstance( other, Vector2 ):
-            newVector.x -= other.x
-            newVector.y -= other.y
-        else:
-            newVector.x -= other
-            newVector.y -= other
-        return newVector
-    
-    def __mul__( self, other: Vector2 | float ) -> float | Vector2:
-        newVector = self.copy()
-        if isinstance( other, Vector2 ):
-            return self.x * other.x + self.y * other.y
-        else:
-            newVector.x *= other
-            newVector.y *= other
-        return newVector
-    
-    
-    
-    def __bool__( self ) -> bool:
-        return bool( self.x ) or bool( self.y )
-    
-    def __lt__( self, other: Vector2 ) -> bool:
-        return ( self.x < other.x ) and ( self.y < other.y )
-    
-    def __le__( self, other: Vector2 ) -> bool:
-        return ( self.x <= other.x ) and ( self.y <= other.y )
-    
-    def __rt__( self, other: Vector2 ) -> bool:
-        return ( self.x > other.x ) and ( self.y > other.y )
-    
-    def __re__( self, other: Vector2 ) -> bool:
-        return ( self.x >= other.x ) and ( self.y >= other.y )
-    
-    
-    
-    def norm( self ) -> float:
-        return ( self * self )**0.5
-    
-    def normalizeToSelf( self ) -> None:
-        norm = self.norm()
-        self.x /= norm
-        self.y /= norm
-    
-    def normalizeToNew( self ) -> Vector2:
-        return self / self.norm()
-    
-    def distanceTo( self, other: Vector2 ) -> float:
-        return ( other - self ).norm()
-
-
-
-
-
-class Vector3:
-    def __init__( self, x: float, y: float, z: float ):
-        self.x: float = x
-        self.y: float = y
-        self.z: float = z
-    
-    @staticmethod
-    def zero() -> Vector3:
-        return Vector3( 0, 0, 0 )
-    
-    @staticmethod
-    def one() -> Vector3:
-        return Vector3( 1, 1, 1 )
-    
-    def __repr__( self ) -> str:
-        return f"({ self.x }, { self.y }, { self.z })"
-    
-    def copy( self ) -> Vector3:
-        return Vector3( self.x, self.y, self.z )
-    
-    
-    
-    def __add__( self, other: Vector3 | float ) -> Vector3:
-        newVector = self.copy()
-        if isinstance( other, Vector3 ):
-            newVector.x += other.x
-            newVector.y += other.y
-            newVector.z += other.z
-        else:
-            newVector.x += other
-            newVector.y += other
-            newVector.z += other
-        return newVector
-    
-    def __sub__( self, other: Vector3 | float ) -> Vector3:
-        newVector = self.copy()
-        if isinstance( other, Vector3 ):
-            newVector.x -= other.x
-            newVector.y -= other.y
-            newVector.z -= other.z
-        else:
-            newVector.x -= other
-            newVector.y -= other
-            newVector.z -= other
-        return newVector
-    
-    def __mul__( self, other: Vector3 | float ) -> float | Vector3:
-        newVector = self.copy()
-        if isinstance( other, Vector3 ):
-            return self.x * other.x + self.y * other.y + self.z * other.z
-        else:
-            newVector.x *= other
-            newVector.y *= other
-            newVector.z *= other
-        return newVector
-    
-    
-    
-    def __bool__( self ) -> bool:
-        return bool( self.x ) or bool( self.y ) or bool( self.z )
-    
-    def __lt__( self, other: Vector3 ) -> bool:
-        return ( self.x < other.x ) and ( self.y < other.y ) and ( self.z < other.z )
-    
-    def __le__( self, other: Vector3 ) -> bool:
-        return ( self.x <= other.x ) and ( self.y <= other.y ) and ( self.z <= other.z )
-    
-    def __rt__( self, other: Vector3 ) -> bool:
-        return ( self.x > other.x ) and ( self.y > other.y ) and ( self.z > other.z )
-    
-    def __re__( self, other: Vector3 ) -> bool:
-        return ( self.x >= other.x ) and ( self.y >= other.y ) and ( self.z >= other.z )
-    
-    
-    
-    def norm( self ) -> float:
-        return ( self * self )**0.5
-    
-    def normalizeToSelf( self ) -> None:
-        norm = self.norm()
-        self.x /= norm
-        self.y /= norm
-        self.z /= norm
-    
-    def normalizeToNew( self ) -> Vector3:
-        return self / self.norm()
-    
-    def distanceTo( self, other: Vector3 ) -> float:
-        return ( other - self ).norm()
+from matrix import Matrix
