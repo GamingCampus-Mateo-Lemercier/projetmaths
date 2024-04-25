@@ -21,11 +21,11 @@ class Matrix:
         return newMatrix
     
     @staticmethod
-    def rotation3( angle: float, axis: Vector ) -> Matrix:
+    def rotation3( angle: float, unitVector: Vector,  ) -> Matrix:
         cosAngle: float = cos( angle )
         sinAngle: float = sin( angle )
         
-        u1: Vector = axis / axis.norm()
+        u1: Vector = unitVector / unitVector.norm()
         
         u2: Vector = Vector.null( 3 )
         for i in range( 3 ):
@@ -40,16 +40,13 @@ class Matrix:
             P_B1_B2[ iIndex ][ 1 ] = u2[ iIndex ]
             P_B1_B2[ iIndex ][ 2 ] = u3[ iIndex ]
         
-        print( P_B1_B2 )
         P_B2_B1 = P_B1_B2 ** (-1)
-        return \
-            P_B1_B2 *\
-            Matrix([
-                [ 1,        0,         0 ],
-                [ 0, cosAngle, -sinAngle ],
-                [ 0, sinAngle,  cosAngle ],
-            ]) *\
-            P_B2_B1
+        Mx = Matrix([
+            [ 1,        0,         0 ],
+            [ 0, cosAngle, -sinAngle ],
+            [ 0, sinAngle,  cosAngle ],
+        ])
+        return P_B1_B2 * Mx * P_B2_B1
     
     def __repr__( self ) -> str:
         sFirstRowCharacters = [ "/", "│", "\\" ]
