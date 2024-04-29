@@ -61,28 +61,39 @@ def setGraph():
     plot.xlim( xlim[0], xlim[2] )
     plot.ylim( zlim[0], zlim[2] )
     
-    # wheelRotation: Matrix = Matrix.rotation3( -pi/6, Vector( [ 0, 1, 0 ] ) )
-    wheelRotation: Matrix = Matrix.rotation3( -pi/64, Vector( [ 0, 1, 0 ] ) )
+    wheelRotation: Matrix = Matrix.rotation3( -pi/6, Vector( [ 0, 1, 0 ] ) )
     wheelTranslation: Vector = ( wheelRotation - Matrix.identity( 3 ) ) * Vector( [ -10, 0, -10 ] )
     
-    # basketRotation: Matrix = Matrix.rotation3( pi/6, Vector( [ 0, 1, 0 ] ) )
-    basketRotation: Matrix = Matrix.rotation3( pi/64, Vector( [ 0, 1, 0 ] ) )
+    basketRotationAxis: Vector = Vector( [ 0, 0, 1 ] )
     
-    for _ in range( 1000 ):
-        plot.clf()
+    wheelPointsTime: list[ list[ Vector ] ] = []
+    basketPointsTime: list[ list[ Vector ] ] = []
+    
+    for aaaa in range( 1000 ):
         
-        trace()
+        wheelPointsTime.append( [ *wheelPoints ] )
+        basketPointsTime.append( [ *basketPoints ] )
+        
+        basketRotationAxis = wheelRotation * basketRotationAxis
         
         for iIndex in range( len( wheelPoints ) ):
             wheelPoints[ iIndex ] = wheelRotation * wheelPoints[ iIndex ] + wheelTranslation
         
         for iIndex in range( len( basketPoints ) ):
-            basketPoints[ iIndex ] = wheelRotation * basketPoints[ iIndex ] + wheelTranslation
+            basketPoints[ iIndex ] = wheelRotation * basketPoints[ iIndex ] + wheelTranslation    
+            basketRotation: Matrix = Matrix.rotation3( -pi/3, basketRotationAxis )
             basketTranslation: Vector = ( basketRotation - Matrix.identity( 3 ) ) * basketPoints[ 0 ] * -1
             basketPoints[ iIndex ] = basketRotation * basketPoints[ iIndex ] + basketTranslation
+    
+    for iIndex in range( 40 ):
+        plot.clf()
         
+        wheelPoints = [ *wheelPointsTime[ iIndex ] ]
+        basketPoints = [ *basketPointsTime[ iIndex ] ]
+        
+        trace()
         plot.draw()
-        plot.pause( 0.05 )
+        plot.pause( 0.5 )
     
     plot.show()
 
@@ -103,6 +114,10 @@ def trace():
     plot.plot( [ wheelPoints[19][0], wheelPoints[7][0] ], [ wheelPoints[19][2], wheelPoints[7][2] ], color=color[0] )
     # plot.plot( [ wheelPoints[16][0], wheelPoints[4][0] ], [ wheelPoints[16][2], wheelPoints[4][2] ], color=color[0] )
     # plot.plot( [ wheelPoints[10][0], wheelPoints[22][0] ], [ wheelPoints[10][2], wheelPoints[22][2] ], color=color[0] )
+    plot.scatter( [ basketPoints[10][0] ], [ basketPoints[10][2] ], color="#00ff00", label="A" )
+    plot.scatter( [ basketPoints[16][0] ], [ basketPoints[16][2] ], color="#00dd00", label="B" )
+    plot.scatter( [ basketPoints[22][0] ], [ basketPoints[22][2] ], color="#00aa00", label="C" )
+    plot.scatter( [ basketPoints[4][0] ], [ basketPoints[4][2] ], color="#007700", label="D" )
     plot.plot( [ basketPoints[4][0], basketPoints[10][0], basketPoints[16][0], basketPoints[22][0], basketPoints[4][0] ], [ basketPoints[4][2], basketPoints[10][2], basketPoints[16][2], basketPoints[22][2], basketPoints[4][2] ], color="green" ) # seat
     
     figures = [ wheelPoints, basketPoints ]
