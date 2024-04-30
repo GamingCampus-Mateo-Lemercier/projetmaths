@@ -35,8 +35,10 @@ circlePoints = [
     [  r3/2 , 0 , -1/2  ], # 22 : -p/6
     [  s2/4 , 0 , -s1/4 ], # 23 : -p/12
 ]
+
 wheelPoints: list[ Vector ] = []
 basketPoints: list[ Vector ] = []
+seatPoints: list[ Vector ] = []
 
 xlim: list[ float ] = [ -10, 0, 30 ]
 zlim: list[ float ] = [ -5, 0, 25 ]
@@ -44,7 +46,7 @@ zlim: list[ float ] = [ -5, 0, 25 ]
 
 
 def setGraph():
-    global xlim; global zlim; global circlePoints; global wheelPoints; global basketPoints
+    global xlim; global zlim; global circlePoints; global wheelPoints; global basketPoints; global seatPoints
     
     position = [ 1, 0, 1 ] # wheel position
     size = 10 # wheel size
@@ -58,6 +60,8 @@ def setGraph():
     for point in circlePoints:
         basketPoints.append( Vector( [ position[ 0 ] + point[ 0 ] * size, 0, position[ 2 ] + point[ 2 ] * size ] ) ) # basket
     
+    seatPoints = [ Vector( [ 20 - 2*r2, 2*r2, 10 ] ), Vector( [ 20 - 2*r2, -2*r2, 10 ] ), Vector( [ 20 + 2*r2, -2*r2, 10 ] ), Vector( [ 20 + 2*r2, 2*r2, 10 ] ) ]
+    
     plot.xlim( xlim[0], xlim[2] )
     plot.ylim( zlim[0], zlim[2] )
     
@@ -68,28 +72,37 @@ def setGraph():
     
     wheelPointsTime: list[ list[ Vector ] ] = []
     basketPointsTime: list[ list[ Vector ] ] = []
+    seatPointsTime: list[ list[ Vector ] ] = []
     
-    for aaaa in range( 1000 ):
+    for _ in range( 1000 ):
         
         wheelPointsTime.append( [ *wheelPoints ] )
         basketPointsTime.append( [ *basketPoints ] )
-        
-        basketRotationAxis = wheelRotation * basketRotationAxis
+        seatPointsTime.append( [ *seatPoints ] )
         
         for iIndex in range( len( wheelPoints ) ):
             wheelPoints[ iIndex ] = wheelRotation * wheelPoints[ iIndex ] + wheelTranslation
         
-        for iIndex in range( len( basketPoints ) ):
-            basketPoints[ iIndex ] = wheelRotation * basketPoints[ iIndex ] + wheelTranslation    
-            basketRotation: Matrix = Matrix.rotation3( -pi/3, basketRotationAxis )
-            basketTranslation: Vector = ( basketRotation - Matrix.identity( 3 ) ) * basketPoints[ 0 ] * -1
+        basketRotationAxis = wheelRotation * basketRotationAxis
+        basketRotation: Matrix = Matrix.rotation3( -pi/3, basketRotationAxis )
+        basketPoints[ 0 ] = wheelRotation * basketPoints[ 0 ] + wheelTranslation
+        basketTranslation: Vector = ( basketRotation - Matrix.identity( 3 ) ) * basketPoints[ 0 ] * -1
+        basketPoints[ 0 ] = basketRotation * basketPoints[ 0 ] + basketTranslation
+        
+        for iIndex in range( 1, len( basketPoints ) ):
+            basketPoints[ iIndex ] = wheelRotation * basketPoints[ iIndex ] + wheelTranslation
             basketPoints[ iIndex ] = basketRotation * basketPoints[ iIndex ] + basketTranslation
+        
+        for iIndex in range( len( seatPoints ) ):
+            seatPoints[ iIndex ] = wheelRotation * seatPoints[ iIndex ] + wheelTranslation
+            seatPoints[ iIndex ] = basketRotation * seatPoints[ iIndex ] + basketTranslation
     
     for iIndex in range( 40 ):
         plot.clf()
         
         wheelPoints = [ *wheelPointsTime[ iIndex ] ]
         basketPoints = [ *basketPointsTime[ iIndex ] ]
+        seatPoints = [ *seatPointsTime[ iIndex ] ]
         
         trace()
         plot.draw()
@@ -100,7 +113,7 @@ def setGraph():
 
 
 def trace():
-    global xlim; global zlim; global wheelPoints; global basketPoints
+    global xlim; global zlim; global wheelPoints; global basketPoints; global seatPoints
     color = [ "blue", "orange" ]
     
     plot.scatter( 0, 0, color="black" ) # origin
@@ -114,13 +127,20 @@ def trace():
     plot.plot( [ wheelPoints[19][0], wheelPoints[7][0] ], [ wheelPoints[19][2], wheelPoints[7][2] ], color=color[0] )
     # plot.plot( [ wheelPoints[16][0], wheelPoints[4][0] ], [ wheelPoints[16][2], wheelPoints[4][2] ], color=color[0] )
     # plot.plot( [ wheelPoints[10][0], wheelPoints[22][0] ], [ wheelPoints[10][2], wheelPoints[22][2] ], color=color[0] )
-    plot.scatter( [ basketPoints[10][0] ], [ basketPoints[10][2] ], color="#00ff00", label="A" )
-    plot.scatter( [ basketPoints[16][0] ], [ basketPoints[16][2] ], color="#00dd00", label="B" )
-    plot.scatter( [ basketPoints[22][0] ], [ basketPoints[22][2] ], color="#00aa00", label="C" )
-    plot.scatter( [ basketPoints[4][0] ], [ basketPoints[4][2] ], color="#007700", label="D" )
-    plot.plot( [ basketPoints[4][0], basketPoints[10][0], basketPoints[16][0], basketPoints[22][0], basketPoints[4][0] ], [ basketPoints[4][2], basketPoints[10][2], basketPoints[16][2], basketPoints[22][2], basketPoints[4][2] ], color="green" ) # seat
     
-    figures = [ wheelPoints, basketPoints ]
+    # plot.scatter( [ basketPoints[10][0] ], [ basketPoints[10][2] ], color="#00ff00" ) # A
+    # plot.scatter( [ basketPoints[16][0] ], [ basketPoints[16][2] ], color="#00dd00" ) # B
+    # plot.scatter( [ basketPoints[22][0] ], [ basketPoints[22][2] ], color="#00aa00" ) # C
+    # plot.scatter( [ basketPoints[4][0] ], [ basketPoints[4][2] ], color="#007700" ) # D
+    # plot.plot( [ basketPoints[4][0], basketPoints[10][0], basketPoints[16][0], basketPoints[22][0], basketPoints[4][0] ], [ basketPoints[4][2], basketPoints[10][2], basketPoints[16][2], basketPoints[22][2], basketPoints[4][2] ], color="green" ) # seat
+    
+    plot.scatter( [ seatPoints[0][0] ], [ seatPoints[0][2] ], color="#00ff00" ) # A
+    plot.scatter( [ seatPoints[1][0] ], [ seatPoints[1][2] ], color="#00dd00" ) # B
+    plot.scatter( [ seatPoints[2][0] ], [ seatPoints[2][2] ], color="#00aa00" ) # C
+    plot.scatter( [ seatPoints[3][0] ], [ seatPoints[3][2] ], color="#007700" ) # D
+    plot.plot( [ seatPoints[0][0], seatPoints[1][0], seatPoints[2][0], seatPoints[3][0], seatPoints[0][0] ], [ seatPoints[0][2], seatPoints[1][2], seatPoints[2][2], seatPoints[3][2], seatPoints[0][2] ], color="green" ) # seat
+    
+    figures = [ wheelPoints]#, basketPoints ]
     for index, figure in enumerate( figures ):
         x, y, z = zip( *figure )
         x, y, z = list( x ), list( y ), list( z )
